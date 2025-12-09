@@ -14,12 +14,29 @@ private:
 
 
 public:
+    Logger(const std::string& filename = "Test/output2.txt") {
+        logFile.open(filename, std::ios::trunc);
+        log("[Init] Logger started.");
+    }
+    ~Logger() {
+        if (logFile.is_open()) {
+            log("[Shutdown] Logger closed.");
+            logFile.close();
+        }
+    }
     static Logger* getInstance(const std::string& filename = "Test/output2.txt") {
-        return nullptr;
+        std::lock_guard<std::mutex> lock(init_mtx);
+        if (!instance) {
+            instance.reset(new Logger(filename));
+        }
+        return instance.get();
     }
 
     void log(const std::string& message) {
         /* TODO */
+        std::lock_guard<std::mutex> lock(write_mtx);
+        logFile << message << std::endl;
+
     }
 
 };
